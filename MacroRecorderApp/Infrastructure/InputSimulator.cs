@@ -91,10 +91,10 @@ public static class InputSimulator
             MouseButtons.Left => isRelease ? MOUSEEVENTF_LEFTUP : MOUSEEVENTF_LEFTDOWN,
             MouseButtons.Right => isRelease ? MOUSEEVENTF_RIGHTUP : MOUSEEVENTF_RIGHTDOWN,
             MouseButtons.Middle => isRelease ? MOUSEEVENTF_MIDDLEUP : MOUSEEVENTF_MIDDLEDOWN,
-            _ => 0
+            _ => 0u
         };
 
-        if (flag == 0)
+        if (flag == 0u)
         {
             return;
         }
@@ -127,7 +127,7 @@ public static class InputSimulator
             {
                 mi = new MouseInput
                 {
-                    mouseData = delta,
+                    mouseData = unchecked((uint)delta),
                     dwFlags = MOUSEEVENTF_WHEEL
                 }
             }
