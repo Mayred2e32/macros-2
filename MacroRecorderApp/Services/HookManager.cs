@@ -56,24 +56,21 @@ public class HookManager : IDisposable
 
     private IntPtr KeyboardCallback(int nCode, IntPtr wParam, IntPtr lParam)
     {
-        if (nCode >= 0)
+        if (nCode >= 0 && lParam != IntPtr.Zero)
         {
             var info = Marshal.PtrToStructure<NativeMethods.KbdLlHookStruct>(lParam);
-            if (info != null)
+            var type = DetermineKeyboardEventType(wParam);
+            if (type.HasValue)
             {
-                var type = DetermineKeyboardEventType(wParam);
-                if (type != null)
+                InputCaptured?.Invoke(this, new HookEventArgs
                 {
-                    InputCaptured?.Invoke(this, new HookEventArgs
-                    {
-                        EventType = type.Value,
-                        KeyCode = info.Value.vkCode,
-                        MouseButton = MouseButtons.None,
-                        MouseX = 0,
-                        MouseY = 0,
-                        MouseDelta = 0
-                    });
-                }
+                    EventType = type.Value,
+                    KeyCode = info.vkCode,
+                    MouseButton = MouseButtons.None,
+                    MouseX = 0,
+                    MouseY = 0,
+                    MouseDelta = 0
+                });
             }
         }
 
@@ -82,26 +79,24 @@ public class HookManager : IDisposable
 
     private static MacroEventType? DetermineKeyboardEventType(IntPtr wParam)
     {
-        return wParam switch
+        var message = wParam.ToInt32();
+        return message switch
         {
-            (IntPtr)NativeMethods.WM_KEYDOWN or (IntPtr)NativeMethods.WM_SYSKEYDOWN => MacroEventType.KeyDown,
-            (IntPtr)NativeMethods.WM_KEYUP or (IntPtr)NativeMethods.WM_SYSKEYUP => MacroEventType.KeyUp,
+            NativeMethods.WM_KEYDOWN or NativeMethods.WM_SYSKEYDOWN => MacroEventType.KeyDown,
+            NativeMethods.WM_KEYUP or NativeMethods.WM_SYSKEYUP => MacroEventType.KeyUp,
             _ => null
         };
     }
 
     private IntPtr MouseCallback(int nCode, IntPtr wParam, IntPtr lParam)
     {
-        if (nCode >= 0)
+        if (nCode >= 0 && lParam != IntPtr.Zero)
         {
             var info = Marshal.PtrToStructure<NativeMethods.MsLlHookStruct>(lParam);
-            if (info != null)
+            var args = CreateMouseEvent(wParam, info);
+            if (args != null)
             {
-                var args = CreateMouseEvent(wParam, info.Value);
-                if (args != null)
-                {
-                    InputCaptured?.Invoke(this, args);
-                }
+                InputCaptured?.Invoke(this, args);
             }
         }
 

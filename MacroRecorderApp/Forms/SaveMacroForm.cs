@@ -8,7 +8,7 @@ public class SaveMacroForm : Form
 
     public string MacroName => _nameTextBox.Text.Trim();
 
-    public SaveMacroForm()
+    public SaveMacroForm(string? initialName = null)
     {
         Text = "Сохранение макроса";
         FormBorderStyle = FormBorderStyle.FixedDialog;
