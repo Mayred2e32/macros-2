@@ -66,6 +66,8 @@ public class HookManager : IDisposable
                 {
                     EventType = type.Value,
                     KeyCode = info.vkCode,
+                    ScanCode = info.scanCode,
+                    IsExtendedKey = (info.flags & NativeMethods.LLKHF_EXTENDED) != 0,
                     MouseButton = MouseButtons.None,
                     MouseX = 0,
                     MouseY = 0,
@@ -163,6 +165,8 @@ public class HookManager : IDisposable
     {
         public MacroEventType EventType { get; set; }
         public int KeyCode { get; set; }
+        public int ScanCode { get; set; }
+        public bool IsExtendedKey { get; set; }
         public MouseButtons MouseButton { get; set; }
         public int MouseX { get; set; }
         public int MouseY { get; set; }
@@ -173,6 +177,8 @@ public class HookManager : IDisposable
     {
         public const int WH_KEYBOARD_LL = 13;
         public const int WH_MOUSE_LL = 14;
+
+        public const int LLKHF_EXTENDED = 0x01;
 
         public const int WM_KEYDOWN = 0x0100;
         public const int WM_KEYUP = 0x0101;
