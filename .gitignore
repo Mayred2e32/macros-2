@@ -1,0 +1,10 @@
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.csproj.user
+/.vs/
+**/bin/
+**/obj/
+*.log
