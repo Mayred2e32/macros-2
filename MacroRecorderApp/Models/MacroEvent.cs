@@ -11,6 +11,10 @@ public class MacroEvent
 
     public int KeyCode { get; set; }
 
+    public int ScanCode { get; set; }
+
+    public bool IsExtendedKey { get; set; }
+
     public MouseButtons MouseButton { get; set; }
 
     public int MouseX { get; set; }

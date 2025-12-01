@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using MacroRecorderApp.Infrastructure;
@@ -45,6 +46,10 @@ public class PlaybackService
 
                 do
                 {
+                    InputSimulator.ResetState();
+                    var playbackTimer = Stopwatch.StartNew();
+                    long scheduledTime = 0;
+
                     foreach (var macroEvent in macro.Events)
                     {
                         if (token.IsCancellationRequested)
@@ -52,9 +57,12 @@ public class PlaybackService
                             break;
                         }
 
-                        if (macroEvent.Delay > 0)
+                        scheduledTime += macroEvent.Delay;
+                        await WaitForTargetTimeAsync(playbackTimer, scheduledTime, token);
+
+                        if (token.IsCancellationRequested)
                         {
-                            await Task.Delay(macroEvent.Delay, token);
+                            break;
                         }
 
                         InputSimulator.Play(macroEvent);
@@ -71,6 +79,7 @@ public class PlaybackService
             }
             finally
             {
+                InputSimulator.ResetState();
                 StopInternal();
             }
         }, token);
@@ -84,6 +93,31 @@ public class PlaybackService
         }
 
         _cts.Cancel();
+    }
+
+    private static async Task WaitForTargetTimeAsync(Stopwatch stopwatch, long targetMilliseconds, CancellationToken token)
+    {
+        const int spinThresholdMs = 5;
+
+        while (!token.IsCancellationRequested)
+        {
+            var remaining = targetMilliseconds - stopwatch.ElapsedMilliseconds;
+            if (remaining <= 0)
+            {
+                return;
+            }
+
+            if (remaining > spinThresholdMs)
+            {
+                var delay = (int)Math.Max(1, remaining - spinThresholdMs);
+                await Task.Delay(delay, token);
+            }
+            else
+            {
+                SpinWait.SpinUntil(() => stopwatch.ElapsedMilliseconds >= targetMilliseconds || token.IsCancellationRequested);
+                return;
+            }
+        }
     }
 
     private void StopInternal()
